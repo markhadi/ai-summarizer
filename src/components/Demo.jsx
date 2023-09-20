@@ -4,45 +4,67 @@ import { copy, linkIcon, loader, tick } from "../assets";
 
 import { useLazyGetSummaryQuery } from "../services/article";
 
+// The Demo component is responsible for fetching article summaries from the API
+// and displaying the results to the user.
 const Demo = () => {
+  // State to store the current article's URL and its summary
   const [article, setArticle] = useState({ url: "", summary: "" });
+  // State to store all articles that have been summarized
   const [allArticles, setAllArticles] = useState([]);
+  // State to store the URL currently copied to the clipboard
   const [copied, setCopied] = useState("");
 
+  // Hook to call the API using Redux Toolkit Query (lazy query)
   const [getSummary, { error, isFetching }] = useLazyGetSummaryQuery();
 
+  // When the component mounts, retrieve the list of articles from localStorage
   useEffect(() => {
-    const alrticlesFromLocalStorage = JSON.parse(
+    const articlesFromLocalStorage = JSON.parse(
       localStorage.getItem("articles")
     );
 
-    if (alrticlesFromLocalStorage) {
-      setAllArticles(alrticlesFromLocalStorage);
+    if (articlesFromLocalStorage) {
+      setAllArticles(articlesFromLocalStorage);
     }
   }, []);
 
+  // Function to handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    // Call the API to get the article summary
     const { data } = await getSummary({ articleUrl: article.url });
 
     if (data?.summary) {
       const newArticle = { ...article, summary: data.summary };
       const updatedAllArticles = [newArticle, ...allArticles];
 
+      // Update the state with the new summary and the updated list of articles
       setArticle(newArticle);
       setAllArticles(updatedAllArticles);
 
-      localStorage.setItem("articles", JSON.stringify(updatedAllArticles));
+      // Save the updated list of articles to localStorage
+      try {
+        localStorage.setItem("articles", JSON.stringify(updatedAllArticles));
+      } catch (error) {
+        console.error("Failed to save articles to localStorage:", error);
+      }
     }
   };
 
-  const handleCopy = (copyUrl) => {
-    setCopied(copyUrl);
-    navigator.clipboard.writeText(copyUrl);
-
+  // Function to handle copying the URL to the clipboard
+  const handleCopy = (e, copyUrl) => {
+    e.stopPropagation(); // Prevent event bubbling
+    setCopied(copyUrl); // Mark the URL as the one currently copied
+    // Copy the URL to the clipboard
+    navigator.clipboard.writeText(copyUrl).catch((error) => {
+      console.error("Failed to copy to clipboard:", error);
+    });
+    // Reset the "copied" state after 3 seconds
     setTimeout(() => setCopied(false), 3000);
   };
+
+  // Render the component
 
   return (
     <section className="mt-16 w-full max-w-xl">
@@ -75,13 +97,16 @@ const Demo = () => {
         </form>
 
         <div className="flex flex-col gap-1 max-h-60 overflow-y-auto">
-          {allArticles.map((item, index) => (
+          {allArticles.map((item) => (
             <div
-              key={index}
+              key={item.url}
               onClick={() => setArticle(item)}
               className="link_card"
             >
-              <div className="copy_btn" onClick={() => handleCopy(item.url)}>
+              <div
+                className="copy_btn"
+                onClick={(e) => handleCopy(e, item.url)}
+              >
                 <img
                   src={copied === item.url ? tick : copy}
                   alt="copy icon"

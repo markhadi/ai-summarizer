@@ -1,6 +1,18 @@
 import { logo } from "../assets";
 
+// The Hero component displays a header with a logo and a button for GitHub
 const Hero = () => {
+  // Function to open the GitHub profile in a new tab
+  const openGitHub = () => {
+    const newTab = window.open("https://github.com/markhadi", "_blank");
+    // Prevent potential attacks through window.opener
+    if (newTab) {
+      newTab.opener = null;
+    }
+  };
+
+  // Render the component
+
   return (
     <header className="w-full flex flex-col justify-center items-center ">
       <nav className="flex justify-between items-center w-full mb-10 pt-3">
@@ -8,7 +20,8 @@ const Hero = () => {
 
         <button
           type="button"
-          onClick={() => window.open("https://github.com/markhadi")}
+          onClick={openGitHub}
+          aria-label="Visit GitHub profile"
           className="black_btn"
         >
           GitHub
