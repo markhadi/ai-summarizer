@@ -4,7 +4,10 @@ import { logo } from "../assets";
 const Hero = () => {
   // Function to open the GitHub profile in a new tab
   const openGitHub = () => {
-    const newTab = window.open("https://github.com/markhadi", "_blank");
+    const newTab = window.open(
+      "https://github.com/markhadi/ai-summarizer",
+      "_blank"
+    );
     // Prevent potential attacks through window.opener
     if (newTab) {
       newTab.opener = null;
